@@ -1,0 +1,24 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+export const loginUser = createAsyncThunk('auth/loginUser', async (credentials) => {
+    const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    return data.token;
+});
+
+const authSlice = createSlice({
+    name: 'auth',
+    initialState: { token: null, loading: false, error: null },
+    reducers: { logout: (state) => { state.token = null; } },
+    extraReducers: (builder) => {
+        builder.addCase(loginUser.fulfilled, (state, action) => { state.token = action.payload; });
+    },
+});
+
+export const { logout } = authSlice.actions;
+export default authSlice.reducer;
